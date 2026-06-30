@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
 
-const NAV_ITEMS = [
+const NAV_ITEMS_DESKTOP = [
   { label: "Hero", href: "#hero-root" },
   { label: "Synopsis", href: "#synopsis" },
   { label: "Cast", href: "#cast" },
@@ -12,16 +12,36 @@ const NAV_ITEMS = [
   { label: "Trailer", href: "#trailer" },
 ];
 
+const NAV_ITEMS_MOBILE = [
+  { label: "Hero", href: "#hero-root" },
+  { label: "Cast", href: "#cast" },
+  { label: "Trailer", href: "#trailer" },
+];
+
 const EXTRA_ITEMS = [
+  { label: "Synopsis", href: "#synopsis" },
+  { label: "Gallery", href: "#gallery" },
   { label: "Secrets", href: "#secret-files" },
   { label: "Tickets", href: "#tickets" },
 ];
+
+const ALL_ITEMS = [...NAV_ITEMS_DESKTOP, ...EXTRA_ITEMS];
 
 export default function FloatingNav() {
   const navRef = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
   const [active, setActive] = useState("Hero");
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  const NAV_ITEMS = isMobile ? NAV_ITEMS_MOBILE : NAV_ITEMS_DESKTOP;
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -32,7 +52,7 @@ export default function FloatingNav() {
         onLeaveBack: () => setVisible(false),
       });
 
-      NAV_ITEMS.forEach((item) => {
+      ALL_ITEMS.forEach((item) => {
         const section = document.querySelector(item.href);
         if (!section) return;
         ScrollTrigger.create({
@@ -47,7 +67,7 @@ export default function FloatingNav() {
     });
 
     return () => ctx.revert();
-  }, []);
+  }, [isMobile]);
 
   useEffect(() => {
     if (!visible) {
@@ -122,7 +142,8 @@ export default function FloatingNav() {
           ref={(el) => { itemRefs.current[i] = el; }}
           onClick={() => scrollTo(item.href)}
           className={cn(
-            "px-3 py-1.5 font-mono text-[10px] tracking-wider uppercase rounded-full",
+            isMobile ? "px-2 py-1" : "px-3 py-1.5",
+            "font-mono text-[9px] md:text-[10px] tracking-wider uppercase rounded-full",
             "transition-all duration-300",
             active === item.label
               ? "bg-red text-white shadow-lg shadow-red/30"
@@ -137,7 +158,8 @@ export default function FloatingNav() {
         <button
           onClick={toggleMore}
           className={cn(
-            "px-3 py-1.5 font-mono text-[10px] tracking-wider uppercase rounded-full",
+            isMobile ? "px-2 py-1" : "px-3 py-1.5",
+            "font-mono text-[9px] md:text-[10px] tracking-wider uppercase rounded-full",
             "transition-all duration-300",
             moreOpen ? "bg-red/20 text-red" : "text-muted hover:text-white"
           )}

@@ -92,7 +92,16 @@ export default function GallerySection() {
     return () => window.removeEventListener("keydown", handleKey);
   }, [modalOpen, closeModal]);
 
-  const getGridClass = (i: number) => {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  const getGridClass = useCallback((i: number) => {
+    if (isMobile) return "col-span-1 row-span-1 min-h-[160px]";
     const spans = [
       "col-span-2 row-span-2 min-h-[400px]",
       "col-span-1 row-span-1",
@@ -108,7 +117,7 @@ export default function GallerySection() {
       "col-span-2 row-span-1 min-h-[280px]",
     ];
     return spans[i] || "col-span-1 row-span-1";
-  };
+  }, [isMobile]);
 
   return (
     <section
@@ -128,7 +137,7 @@ export default function GallerySection() {
           Moments in the Dark
         </h2>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 auto-rows-[200px] md:auto-rows-[280px]">
+        <div className={`grid ${isMobile ? "grid-cols-2" : "grid-cols-2 md:grid-cols-4"} gap-2 md:gap-3 ${isMobile ? "auto-rows-[160px]" : "auto-rows-[200px] md:auto-rows-[280px]"}`}>
           {GALLERY_IMAGES.map((src, i) => (
             <div
               key={i}

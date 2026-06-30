@@ -15,6 +15,14 @@ export default function TrailerSection() {
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(true);
   const [ended, setEnded] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   const togglePlay = useCallback(() => {
     const video = videoRef.current;
@@ -131,7 +139,7 @@ export default function TrailerSection() {
           )}
 
           {playing && (
-            <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className={`absolute bottom-4 left-4 right-4 flex items-center justify-between z-10 transition-opacity duration-300 ${isMobile ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
               <button
                 onClick={togglePlay}
                 className="w-10 h-10 flex items-center justify-center rounded-full bg-background/80 border border-web/30 text-white hover:bg-red transition-colors duration-200"

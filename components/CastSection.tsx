@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { gsap } from "@/lib/gsap";
 import SectionLabel from "@/components/ui/SectionLabel";
 import { prefersReducedMotion } from "@/lib/utils";
@@ -18,16 +18,20 @@ export default function CastSection() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   useEffect(() => {
     const el = sectionRef.current;
     const track = trackRef.current;
     if (!el || !track) return;
-
-    if (prefersReducedMotion()) return;
-
-    const isMobile = window.innerWidth < 768;
-    if (isMobile) return;
+    if (prefersReducedMotion() || isMobile) return;
 
     const ctx = gsap.context(() => {
       const totalWidth = track.scrollWidth;
@@ -66,7 +70,44 @@ export default function CastSection() {
     }, el);
 
     return () => ctx.revert();
-  }, []);
+  }, [isMobile]);
+
+  if (isMobile) {
+    return (
+      <section
+        id="cast"
+        ref={sectionRef}
+        className="relative w-full bg-background overflow-hidden snap-start py-24"
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-red/5 via-transparent to-transparent" />
+        <div className="relative z-content max-w-7xl mx-auto px-4">
+          <SectionLabel className="text-center mb-12">Starring</SectionLabel>
+          <div className="grid grid-cols-2 gap-4">
+            {CAST.map((member) => (
+              <div
+                key={member.name}
+                className="group relative aspect-[3/4] overflow-hidden rounded-sm border border-web/10"
+              >
+                <div
+                  className="absolute inset-0 bg-cover bg-center cinematic-image group-hover:scale-105 transition-transform duration-700"
+                  style={{ backgroundImage: `url(${member.image})` }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-70" />
+                <div className="absolute bottom-0 left-0 right-0 p-3">
+                  <h3 className="font-display text-lg text-white tracking-wider">
+                    {member.name}
+                  </h3>
+                  <p className="font-editorial italic text-[10px] text-muted mt-0.5">
+                    {member.role}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section
