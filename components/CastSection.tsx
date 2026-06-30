@@ -1,0 +1,133 @@
+"use client";
+
+import { useRef, useEffect } from "react";
+import { gsap } from "@/lib/gsap";
+import SectionLabel from "@/components/ui/SectionLabel";
+import { prefersReducedMotion } from "@/lib/utils";
+
+const CAST = [
+  { name: "Tom Holland", role: "Peter Parker / Spider-Man", image: "/images/cast/1.jpg" },
+  { name: "Zendaya", role: "MJ", image: "/images/cast/2.jpg" },
+  { name: "Sadie Sink", role: "Newcomer", image: "/images/cast/3.jpg" },
+  { name: "Michael Mando", role: "Scorpion", image: "/images/cast/4.jpg" },
+  { name: "Mark Ruffalo", role: "Bruce Banner", image: "/images/cast/5.jpg" },
+  { name: "Jon Bernthal", role: "The Punisher", image: "/images/cast/6.jpg" },
+];
+
+export default function CastSection() {
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    const track = trackRef.current;
+    if (!el || !track) return;
+
+    if (prefersReducedMotion()) return;
+
+    const isMobile = window.innerWidth < 768;
+    if (isMobile) return;
+
+    const ctx = gsap.context(() => {
+      const totalWidth = track.scrollWidth;
+      const viewportWidth = window.innerWidth;
+      const maxScroll = totalWidth - viewportWidth;
+
+      gsap.to(track, {
+        x: -maxScroll,
+        ease: "none",
+        scrollTrigger: {
+          trigger: el,
+          pin: true,
+          start: "top top",
+          end: () => `+=${totalWidth}`,
+          scrub: 2,
+          invalidateOnRefresh: true,
+        },
+      });
+
+      cardsRef.current.forEach((card, i) => {
+        if (!card) return;
+        const img = card.querySelector<HTMLDivElement>(".cast-image");
+        if (!img) return;
+
+        gsap.to(img, {
+          y: -60 + i * 10,
+          ease: "none",
+          scrollTrigger: {
+            trigger: card,
+            start: "left center",
+            end: "right center",
+            scrub: 1,
+          },
+        });
+      });
+    }, el);
+
+    return () => ctx.revert();
+  }, []);
+
+  return (
+    <section
+      id="cast"
+      ref={sectionRef}
+      className="relative w-full bg-background overflow-hidden snap-start"
+      style={{ height: "100vh" }}
+    >
+      <div className="absolute inset-0 bg-gradient-to-r from-red/5 via-transparent to-transparent" />
+
+      <div className="absolute top-12 left-1/2 -translate-x-1/2 z-10">
+        <SectionLabel className="text-center">Starring</SectionLabel>
+      </div>
+
+      <div
+        ref={trackRef}
+        className="flex items-center h-full gap-8 px-[10vw]"
+      >
+        {CAST.map((member, i) => (
+          <div
+            key={member.name}
+            ref={(el) => { cardsRef.current[i] = el; }}
+            className="group relative flex-shrink-0 w-[280px] md:w-[340px] h-[420px] md:h-[500px] overflow-hidden cursor-pointer"
+          >
+            <div
+              className="cast-image absolute inset-0 w-full h-[120%] cinematic-image"
+              style={{
+                backgroundImage: `url(${member.image})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }}
+            />
+
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-60" />
+
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+              <div className="absolute top-0 left-0 w-full h-[2px] bg-red shadow-lg shadow-red/50"
+                style={{
+                  animation: "scanLine 2s linear infinite",
+                }}
+              />
+            </div>
+
+            <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
+              <h3 className="font-display text-2xl text-white tracking-wider">
+                {member.name}
+              </h3>
+              <p className="font-editorial italic text-sm text-muted mt-1">
+                {member.role}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <style jsx>{`
+        @keyframes scanLine {
+          0% { transform: translateY(0); }
+          100% { transform: translateY(420px); }
+        }
+      `}</style>
+    </section>
+  );
+}
